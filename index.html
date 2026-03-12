@@ -100,7 +100,7 @@ const TEAMS = [
 
 const ALL_GOLFERS = TEAMS.flatMap(t => t.golfers);
 
-const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard";
+const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard?event=401811937";
 const AUTO_REFRESH_SECONDS = 120;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -509,7 +509,6 @@ function App() {
   );
 }
 
-  
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
