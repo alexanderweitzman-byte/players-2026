@@ -11,24 +11,24 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100vh; background: #020a02; font-family: Georgia, serif; color: #fff; }
     body { background: radial-gradient(ellipse at top left, #0a1f0a 0%, #061206 40%, #020a02 100%); }
-
+ 
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
+ 
     .animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-
+ 
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
-
+ 
     input:focus { outline: none; }
     button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
-
+ 
     .tab-active   { background: rgba(255,255,255,0.13) !important; color: #fff !important; }
     .tab-inactive { color: rgba(255,255,255,0.4); }
     .tab-inactive:hover { color: rgba(255,255,255,0.6); }
-
+ 
     /* ── CORS notice ── */
     .cors-notice {
       display: none;
@@ -47,64 +47,64 @@
 </head>
 <body>
 <div id="root"></div>
-
+ 
 <!-- ═══════════════════════════════════════════════════════════
      HOSTING GUIDE  (remove this comment block before deploy)
      ═══════════════════════════════════════════════════════════
-
+ 
   This is a fully self-contained single HTML file.
   It fetches live scores from the public ESPN PGA leaderboard API:
     https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard
-
+ 
   No API key or backend is needed — ESPN allows direct browser requests.
-
+ 
   ── Option A: GitHub Pages (free, ~60 seconds) ──────────────
   1. Create a new repo on github.com (can be private)
   2. Drop this file in as  index.html
   3. Go to Settings → Pages → Deploy from branch → main / root
   4. Your app is live at  https://<you>.github.io/<repo>/
-
+ 
   ── Option B: Netlify Drop (free, instant) ───────────────────
   1. Go to  https://app.netlify.com/drop
   2. Drag this file into the browser window
   3. Done — you get a  https://xxxx.netlify.app  URL immediately
-
+ 
   ── Option C: Vercel CLI ─────────────────────────────────────
   1. npm i -g vercel
   2. mkdir players && mv players-championship-2026.html players/index.html
   3. cd players && vercel --prod
-
+ 
   ── CORS note ────────────────────────────────────────────────
   If you open this file as  file:///...  (double-click) some
   browsers block the ESPN fetch due to CORS restrictions.
   Hosting it on any real domain (even localhost) works fine.
   The app shows a friendly in-page notice if this happens.
-
+ 
 ═════════════════════════════════════════════════════════════ -->
-
+ 
 <script type="text/babel">
 const { useState, useEffect, useCallback, useRef } = React;
-
+ 
 // ─── Fantasy Teams ────────────────────────────────────────────────────────────
-
+ 
 const TEAMS = [
   { id:1, name:"Team Billy G",  owner:"Billy G",  golfers:["Scottie Scheffler","Chris Gotterup","Jake Knapp","Maverick McNealy"] },
-  { id:2, name:"Team Slimy",    owner:"Slimy",    golfers:["Rory McIlroy","Robert MacIntyre","Brooks Koepka","Alejandro Gerard"] },
-  { id:3, name:"Team Don",      owner:"Don",      golfers:["Collin Morikawa","Min Woo Lee","Sepp Straka","Davis Bridgeman"] },
+  { id:2, name:"Team Slimy",    owner:"Slimy",    golfers:["Rory McIlroy","Robert MacIntyre","Brooks Koepka","Ryan Gerard"] },
+  { id:3, name:"Team Don",      owner:"Don",      golfers:["Collin Morikawa","Min Woo Lee","Sepp Straka","Jacob Bridgeman"] },
   { id:4, name:"Team Paulie",   owner:"Paulie",   golfers:["Ludvig Åberg","Hideki Matsuyama","Matt Fitzpatrick","Patrick Cantlay"] },
   { id:5, name:"Team Canzani",  owner:"Canzani",  golfers:["Xander Schauffele","Shane Lowry","J.J. Spaun","Corey Conners"] },
   { id:6, name:"Team T-Mac",    owner:"T-Mac",    golfers:["Tommy Fleetwood","Russell Henley","Rickie Fowler","Adam Scott"] },
   { id:7, name:"Team J Woods",  owner:"J Woods",  golfers:["Cameron Young","Akshay Bhatia","Daniel Berger","Aaron Rai"] },
   { id:8, name:"Team Vince",    owner:"Vince",    golfers:["Si Woo Kim","Viktor Hovland","Sahith Theegala","Kurt Kitayama"] },
 ];
-
+ 
 const ALL_GOLFERS = TEAMS.flatMap(t => t.golfers);
-
-const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard?event=401811937";
+ 
+const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard";
 const AUTO_REFRESH_SECONDS = 120;
-
+ 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
+ 
 function normalizeScore(raw) {
   if (raw === null || raw === undefined) return null;
   const s = String(raw).trim().toUpperCase();
@@ -113,14 +113,14 @@ function normalizeScore(raw) {
   const n = parseInt(s, 10);
   return isNaN(n) ? null : n;
 }
-
+ 
 function fmtScore(score) {
   if (score === null || score === undefined) return "—";
   if (score === 999) return "CUT";
   if (score === 0) return "E";
   return score > 0 ? `+${score}` : `${score}`;
 }
-
+ 
 function scoreColor(score) {
   if (score === null || score === undefined) return "rgba(255,255,255,0.2)";
   if (score === 999) return "rgba(255,255,255,0.25)";
@@ -128,7 +128,7 @@ function scoreColor(score) {
   if (score === 0) return "#d1d5db";
   return "#facc15";
 }
-
+ 
 function matchGolfer(espnName, ourName) {
   const en = espnName.toLowerCase().replace(/[^a-z\s]/g, "");
   const on = ourName.toLowerCase().replace(/[^a-z\s]/g, "");
@@ -141,7 +141,7 @@ function matchGolfer(espnName, ourName) {
   if (eLast !== oLast) return false;
   return eParts[0][0] === oParts[0][0];
 }
-
+ 
 function isCorsError(e) {
   return (
     e instanceof TypeError &&
@@ -150,9 +150,9 @@ function isCorsError(e) {
      e.message.includes("CORS"))
   );
 }
-
+ 
 // ─── ScoreChip ────────────────────────────────────────────────────────────────
-
+ 
 function ScoreChip({ score, large }) {
   const display = fmtScore(score);
   const color = scoreColor(score);
@@ -163,9 +163,9 @@ function ScoreChip({ score, large }) {
     </span>
   );
 }
-
+ 
 // ─── TeamCard ─────────────────────────────────────────────────────────────────
-
+ 
 function TeamCard({ team, scores, rank, expanded, onToggle }) {
   const vals = team.golfers
     .map(g => scores[g])
@@ -174,7 +174,7 @@ function TeamCard({ team, scores, rank, expanded, onToggle }) {
   const total = vals.reduce((a, b) => a + b, 0);
   const rankIcons = ["🥇","🥈","🥉"];
   const isFirst = rank === 1 && hasAny;
-
+ 
   return (
     <div style={{
       borderRadius: 14,
@@ -220,7 +220,7 @@ function TeamCard({ team, scores, rank, expanded, onToggle }) {
           <path d="M6 9l6 6 6-6"/>
         </svg>
       </div>
-
+ 
       {/* Expanded golfer rows */}
       {expanded && (
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "12px 16px 14px" }}>
@@ -237,9 +237,9 @@ function TeamCard({ team, scores, rank, expanded, onToggle }) {
     </div>
   );
 }
-
+ 
 // ─── App ──────────────────────────────────────────────────────────────────────
-
+ 
 function App() {
   const [scores, setScores]           = useState({});
   const [loading, setLoading]         = useState(false);
@@ -250,7 +250,7 @@ function App() {
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [activeTab, setActiveTab]     = useState("leaderboard");
   const countdownRef = useRef(null);
-
+ 
   const fetchScores = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -259,32 +259,34 @@ function App() {
       const res = await fetch(ESPN_URL, { mode: "cors" });
       if (!res.ok) throw new Error(`ESPN API returned HTTP ${res.status} — try again shortly.`);
       const data = await res.json();
-
+ 
       const competitors = data?.events?.[0]?.competitions?.[0]?.competitors ?? [];
       if (competitors.length === 0) {
         throw new Error("No competitor data yet — tee times may not be posted for this event.");
       }
-
+ 
       // Build ESPN lookup map
+      // NOTE: in the ESPN golf API, c.score is a plain string like "-5", "E", "+2"
       const espnMap = {};
       for (const c of competitors) {
-        const name        = c.athlete?.displayName ?? "";
-        const scoreRaw    = c.score?.value
-          ?? c.statistics?.find(s => s.name === "scoreToPar")?.displayValue;
-        const detail      = (c.status?.type?.shortDetail ?? "").toLowerCase();
-        const isCut       = detail.includes("cut") || detail.includes("mc");
-        const isWD        = detail.includes("wd") || detail.includes("withdraw");
-        const score       = isCut || isWD ? 999 : normalizeScore(scoreRaw);
-        espnMap[name]     = score;
+        const name       = c.athlete?.displayName ?? "";
+        const scoreRaw   = typeof c.score === "string" ? c.score
+                         : (c.score?.displayValue ?? c.score?.value ?? null);
+        const scoreUpper = String(scoreRaw ?? "").trim().toUpperCase();
+        const isCut      = scoreUpper === "CUT" || scoreUpper === "MC";
+        const isWD       = scoreUpper === "WD" || scoreUpper === "WD-MC";
+        const isDQ       = scoreUpper === "DQ";
+        const score      = (isCut || isWD || isDQ) ? 999 : normalizeScore(scoreRaw);
+        espnMap[name]    = score;
       }
-
+ 
       // Match our golfers to ESPN names
       const newScores = {};
       for (const golfer of ALL_GOLFERS) {
         const espnName = Object.keys(espnMap).find(n => matchGolfer(n, golfer));
         newScores[golfer] = espnName !== undefined ? espnMap[espnName] : null;
       }
-
+ 
       setScores(newScores);
       setLastUpdated(new Date());
       setCountdown(AUTO_REFRESH_SECONDS);
@@ -299,10 +301,10 @@ function App() {
       setLoading(false);
     }
   }, []);
-
+ 
   // Initial fetch
   useEffect(() => { fetchScores(); }, []);
-
+ 
   // Auto-refresh countdown
   useEffect(() => {
     clearInterval(countdownRef.current);
@@ -314,7 +316,7 @@ function App() {
     }, 1000);
     return () => clearInterval(countdownRef.current);
   }, [fetchScores]);
-
+ 
   // Ranked teams
   const rankedTeams = [...TEAMS].map(team => {
     const vals = team.golfers
@@ -331,7 +333,7 @@ function App() {
     if (!b.hasAny) return -1;
     return a.total - b.total;
   });
-
+ 
   const allSorted = [...ALL_GOLFERS].sort((a, b) => {
     const sa = scores[a], sb = scores[b];
     if (sa === null || sa === undefined) return 1;
@@ -340,14 +342,14 @@ function App() {
     if (sb === 999 && sa !== 999) return -1;
     return sa - sb;
   });
-
+ 
   const entered = ALL_GOLFERS.filter(g => scores[g] !== null && scores[g] !== undefined).length;
-
+ 
   // ── Render ──────────────────────────────────────────────────────────────────
-
+ 
   return (
     <div style={{ minHeight: "100vh", maxWidth: 640, margin: "0 auto", padding: "32px 16px" }}>
-
+ 
       {/* ── Header ── */}
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{
@@ -368,7 +370,7 @@ function App() {
           TPC Sawgrass · March 12–15, 2026
         </p>
       </div>
-
+ 
       {/* ── Status bar ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, fontFamily: "sans-serif" }}>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
@@ -394,7 +396,7 @@ function App() {
           {loading ? "Fetching…" : "Refresh Now"}
         </button>
       </div>
-
+ 
       {/* ── CORS notice ── */}
       <div className={`cors-notice${corsBlocked ? " visible" : ""}`}>
         <strong>⚠️ CORS blocked by your browser.</strong><br />
@@ -403,7 +405,7 @@ function App() {
         • Or open in <strong>Firefox</strong> with CORS restrictions relaxed for local files.<br />
         See the hosting guide in the HTML source comments for step-by-step instructions.
       </div>
-
+ 
       {/* ── Error ── */}
       {error && !corsBlocked && (
         <div style={{
@@ -414,7 +416,7 @@ function App() {
           ⚠️ {error}
         </div>
       )}
-
+ 
       {/* ── Tabs ── */}
       <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(255,255,255,0.05)", marginBottom: 18 }}>
         {[["leaderboard","🏆 Team Leaderboard"],["golfers","⛳ All Golfers"]].map(([key, label]) => (
@@ -432,7 +434,7 @@ function App() {
           </button>
         ))}
       </div>
-
+ 
       {/* ── Leaderboard tab ── */}
       {activeTab === "leaderboard" && (
         <div>
@@ -451,7 +453,7 @@ function App() {
           </p>
         </div>
       )}
-
+ 
       {/* ── All Golfers tab ── */}
       {activeTab === "golfers" && (
         <div style={{
@@ -485,7 +487,7 @@ function App() {
           })}
         </div>
       )}
-
+ 
       {/* ── Legend ── */}
       <div style={{
         marginTop: 18, padding: "14px 16px", borderRadius: 12,
@@ -504,11 +506,11 @@ function App() {
           Scores auto-refresh every {AUTO_REFRESH_SECONDS} seconds.
         </p>
       </div>
-
+ 
     </div>
   );
 }
-
+ 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
